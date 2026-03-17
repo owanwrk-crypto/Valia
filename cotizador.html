@@ -489,8 +489,138 @@
             </div>
 
             <div id="tab-cotizaciones" class="tab-content">
-                <h3>Historial de Cotizaciones</h3>
-                <p>Lista de cotizaciones realizadas.</p>
+                <div class="inventory-layout" style="grid-template-columns: 420px 1fr; gap: 30px;">
+                    
+                    <!-- Panel Izquierdo: Formulario de Cotización -->
+                    <div class="material-form" style="position: sticky; top: 20px; max-height: calc(100vh - 200px); overflow-y: auto;">
+                        <h4 style="color: var(--accent); margin-bottom: 20px;">Agregar Material</h4>
+                        
+                        <!-- Selector de Material -->
+                        <div class="form-field">
+                            <label>📦 Material *</label>
+                            <select id="cotMaterial" onchange="actualizarPrecioUnitarioCot()" style="font-size: 0.9rem;">
+                                <option value="">-- Selecciona un material --</option>
+                            </select>
+                            <small style="color: rgba(255,255,255,0.4); margin-top: 4px; display: block;">Cargando materiales...</small>
+                        </div>
+
+                        <!-- Precio Unitario (Lectura) -->
+                        <div class="form-field">
+                            <label>💲 Precio Unitario (Costo)</label>
+                            <input type="text" id="cotPrecioUnit" readonly placeholder="$0.00" style="background: rgba(255,255,255,0.02); color: var(--accent); border-style: dashed; cursor: not-allowed;">
+                        </div>
+
+                        <!-- Cantidad Solicitada -->
+                        <div class="form-field">
+                            <label>📊 Cantidad Requerida *</label>
+                            <input type="number" id="cotCantidad" placeholder="0" min="1" step="1" oninput="calcularTotalCot()" style="font-size: 1.1rem;">
+                            <small style="color: rgba(255,255,255,0.4); margin-top: 4px; display: block;" id="descuentoVolumenInfo">Ingresa cantidad para ver descuentos</small>
+                        </div>
+
+                        <!-- Margen de Ganancia -->
+                        <div class="form-field">
+                            <label>📈 Margen de Ganancia (%)</label>
+                            <input type="number" id="cotMargen" value="30" min="0" max="100" step="0.5" oninput="calcularTotalCot()">
+                            <small style="color: rgba(255,255,255,0.4); margin-top: 4px; display: block;">Valor recomendado: 25-40%</small>
+                        </div>
+
+                        <!-- Divider -->
+                        <div style="height: 1px; background: rgba(0, 242, 255, 0.2); margin: 20px 0;"></div>
+
+                        <!-- Desglose Detallado -->
+                        <div id="desgloseCotizacion" style="background: rgba(0, 242, 255, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(0, 242, 255, 0.2); margin-bottom: 20px; font-size: 0.9rem;">
+                            <div style="color: rgba(255,255,255,0.6); margin-bottom: 12px; font-weight: 600;">Desglose del Cálculo:</div>
+                            
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0, 242, 255, 0.1);">
+                                <span>Subtotal (Costo):</span>
+                                <span id="costSubtotal">$0.00</span>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0, 242, 255, 0.1); color: #00ff88;" id="descuentoRow" style="display: none;">
+                                <span>Descuento por Volumen:</span>
+                                <span id="costDescuento">-$0.00</span>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0, 242, 255, 0.1);">
+                                <span>Subtotal c/ Descuento:</span>
+                                <span id="costSubtotalDesc">$0.00</span>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0, 242, 255, 0.1);">
+                                <span>Precio c/ Margen:</span>
+                                <span id="costConMargen">$0.00</span>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0, 242, 255, 0.1);">
+                                <span>IVA (16%):</span>
+                                <span id="costIVA">$0.00</span>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; font-size: 1.15rem; color: var(--accent); font-weight: 700;">
+                                <span>💰 PRECIO FINAL:</span>
+                                <span id="cotPrecioFinal">$0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <button class="btn-save" onclick="agregarMaterialACotizacion()" style="margin-bottom: 10px; background: linear-gradient(135deg, #00ff88, #00f2ff); color: #0f172a;">
+                            ➕ AGREGAR A COTIZACIÓN
+                        </button>
+                        
+                        <button class="btn-save" onclick="limpiarCotizacion()" style="background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.2);">
+                            🗑️ LIMPIAR FORMULARIO
+                        </button>
+                    </div>
+
+                    <!-- Panel Derecho: Resumen y Detalles -->
+                    <div style="background: rgba(255, 255, 255, 0.02); padding: 25px; border-radius: 16px; border: 1px solid var(--border); display: flex; flex-direction: column;">
+                        <h4 style="font-family: 'Space Grotesk'; margin-bottom: 20px; color: var(--accent);">📋 Resumen de Cotización</h4>
+                        
+                        <!-- Tabla de Materiales -->
+                        <div class="inventory-list" style="flex: 1; overflow-y: auto;">
+                            <table id="cotTable" style="font-size: 0.85rem;">
+                                <thead>
+                                    <tr>
+                                        <th>Material</th>
+                                        <th>Cantidad</th>
+                                        <th>Unitario</th>
+                                        <th>Subtotal</th>
+                                        <th style="width: 50px;">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cotTableBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; color: rgba(255,255,255,0.3); padding: 40px;">
+                                            Agrega materiales para ver el desglose.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Resumen de Totales -->
+                        <div style="background: rgba(0, 242, 255, 0.1); padding: 20px; border-radius: 12px; margin-top: 20px; border: 2px solid rgba(0, 242, 255, 0.3);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem;">
+                                <span style="color: rgba(255,255,255,0.7);">Costo Total:</span>
+                                <span style="font-weight: 600;" id="cotResumenCosto">$0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 1.3rem; color: var(--accent); font-weight: 700; border-top: 1px solid rgba(0, 242, 255, 0.3); padding-top: 12px;">
+                                <span>Precio Total:</span>
+                                <span id="cotResumenPrecio">$0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Guardado -->
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button class="btn-save" onclick="guardarCotizacion()" style="flex: 1; background: linear-gradient(135deg, var(--primary), var(--accent));">
+                                ✅ GUARDAR COTIZACIÓN
+                            </button>
+                            <button class="btn-save" onclick="descargarPDFCotizacionActual()" style="flex: 1; background: rgba(255, 68, 68, 0.15); color: #ff8844; border: 1px solid rgba(255, 136, 68, 0.3);">
+                                📄 DESCARGAR PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="tab-config" class="tab-content">
@@ -501,6 +631,9 @@
     </div>
 
     <script src="app.js"></script>
+    <!-- Archivos de configuración y utilidades -->
+    <script src="utilidades.js" defer></script>
+    <script src="config-avanzada.js" defer></script>
     <script>
         // Verificación de sesión al cargar
         document.addEventListener('DOMContentLoaded', () => {
@@ -513,13 +646,18 @@
             document.getElementById('userNameDisplay').innerText = `Hola, ${user.nombre}`;
             document.getElementById('userInitial').innerText = user.nombre.charAt(0).toUpperCase();
             
-            // Mock de cargarMateriales si no está definido en app.js
+            // Cargar materiales e inicializar cotizaciones
             if (typeof cargarMateriales !== 'function') {
                 window.cargarMateriales = function() {
                     console.log("Mock: Cargando materiales...");
                 };
             }
             cargarMateriales();
+            
+            // Inicializar sistema de cotizaciones
+            if (typeof inicializarCotizaciones === 'function') {
+                inicializarCotizaciones();
+            }
         });
 
         function logout() {
