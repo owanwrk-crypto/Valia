@@ -5,234 +5,265 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Valia Pro - Acceso</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+    <!-- Fuentes Modernas -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         :root {
-            --accent: #00f2ff; /* Cian Neón */
-            --bg-deep: #020a16;
-            --gradient-start: #ff00ff; /* Magenta */
-            --gradient-end: #00f2ff; /* Cian */
-            --glass: rgba(10, 25, 47, 0.7);
-            --font-main: 'Rajdhani', sans-serif;
-            --font-header: 'Orbitron', sans-serif;
+            --primary: #6366f1;
+            --accent: #00f2ff;
+            --bg-dark: #0f172a;
+            --glass: rgba(15, 23, 42, 0.8);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: var(--font-main);
-            /* Degradado de fondo con más profundidad */
-            background: linear-gradient(135deg, #4f3aff 0%, #0c0068 50%, #b100ff 100%);
-            color: white;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
             overflow: hidden;
+            position: relative;
         }
 
-        /* Contenedor Orgánico del Login (como la imagen) */
+        /* Fondo Animado "Épico" */
+        .background-blobs {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0f172a 100%);
+        }
+
+        .blob {
+            position: absolute;
+            width: 500px; height: 500px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            filter: blur(80px);
+            border-radius: 50%;
+            opacity: 0.15;
+            animation: move 20s infinite alternate;
+        }
+
+        .blob-1 { top: -100px; left: -100px; }
+        .blob-2 { bottom: -100px; right: -100px; animation-delay: -5s; }
+
+        @keyframes move {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(100px, 100px) scale(1.2); }
+        }
+
+        /* Card de Login Glassmorphism */
         .login-card {
-            position: relative;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--glass);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            /* Forma orgánica usando border-radius complejo */
-            border-radius: 40% 60% 50% 50% / 60% 40% 60% 40%;
-            padding: 60px 40px;
-            width: 350px;
+            border: 1px solid var(--border);
+            padding: 50px 40px;
+            width: 400px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             text-align: center;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-            animation: formAppear 0.5s ease-out;
+            animation: fadeIn 0.8s ease-out;
         }
 
-        /* Efecto de Luz de Fondo (Gradient Blobs) */
-        .login-card::before {
-            content: '';
-            position: absolute;
-            top: -2px; left: -2px; width: 100%; height: 100%;
-            border-radius: 40% 60% 50% 50% / 60% 40% 60% 40%;
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            z-index: -1;
-            filter: blur(5px);
-            opacity: 0.5;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Avatar de Usuario (Círculo blanco como la imagen) */
-        .avatar {
-            width: 80px;
-            height: 80px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto 30px auto;
-            position: relative;
-        }
-        
-        /* Icono de usuario dentro del avatar con degradado */
-        .avatar-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            border-radius: 50%;
-            clip-path: circle(50% at 50% 50%); /* Opcional: para asegurar forma */
-        }
-
-        /* Cabecera "Sign In" */
-        h1 {
-            font-family: var(--font-header);
-            color: white;
-            font-size: 2.2rem;
+        .logo-container {
             margin-bottom: 30px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
-        /* Grupo de Input y PIN Display unificado */
-        .input-pin-container {
-            margin-bottom: 25px;
+        .logo-icon {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            color: white;
+            font-size: 2rem;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.95rem;
+            margin-bottom: 35px;
+        }
+
+        /* Formulario Limpio */
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
             text-align: left;
         }
 
-        /* Input de Usuario (con icono integrado) */
-        .input-user-group {
-            position: relative;
-            margin-bottom: 15px;
+        .form-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            margin-left: 4px;
         }
 
-        .user-icon {
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper svg {
             position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255,255,255,0.7);
+            left: 16px;
+            color: rgba(255, 255, 255, 0.3);
+            transition: 0.3s;
         }
 
         input {
             width: 100%;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 15px 15px 15px 45px; /* Espacio para icono */
-            border-radius: 30px; /* Bordes muy redondeados */
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 14px 16px 14px 48px;
+            border-radius: 14px;
             color: white;
-            font-family: var(--font-header);
-            font-size: 1.1rem;
-            box-sizing: border-box;
+            font-size: 1rem;
+            transition: all 0.3s;
             outline: none;
-            transition: 0.3s;
         }
-        
+
         input:focus {
-            border-color: var(--gradient-end);
-            background: rgba(255,255,255,0.05);
-            box-shadow: 0 0 10px rgba(0,242,255,0.3);
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
         }
 
-        /* Visualizador de PIN (Estilo modernizado como input) */
-        .input-pin-group {
-            position: relative;
-            margin-bottom: 15px;
+        input:focus + svg {
+            color: var(--primary);
         }
 
-        .pin-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255,255,255,0.7);
-        }
-
-        input {
-            width: 100%;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 15px 15px 15px 45px; /* Espacio para icono */
-            border-radius: 30px; /* Bordes muy redondeados */
-            color: white;
-            font-family: var(--font-header);
-            font-size: 1.1rem;
-            box-sizing: border-box;
-            outline: none;
-            transition: 0.3s;
-        }
-        
-        input:focus {
-            border-color: var(--gradient-end);
-            background: rgba(255,255,255,0.05);
-            box-shadow: 0 0 15px rgba(0,242,255,0.4);
-        }
-
-        input::placeholder {
-            color: rgba(255,255,255,0.4);
-            font-family: var(--font-main);
-        }
-
-        /* Botón de Login (Degradado como la imagen) */
+        /* Botón de Login "Épico" */
         .btn-login {
             width: 100%;
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            color: var(--bg-deep);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
             border: none;
-            padding: 18px;
-            border-radius: 30px;
-            font-family: var(--font-header);
-            font-weight: bold;
-            font-size: 1.2rem;
-            text-transform: uppercase;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: 0.3s;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
         }
 
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0,242,255,0.4);
+            box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4);
+            filter: brightness(1.1);
         }
 
-        /* Animación de entrada */
-        @keyframes formAppear {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Estilo para errores */
+        .error-message {
+            color: #ef4444;
+            font-size: 0.85rem;
+            margin-top: 15px;
+            display: none;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
     </style>
 </head>
 <body>
 
-<div class="login-card">
-    <div class="avatar">
-        <div class="avatar-icon"></div>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
     </div>
-    
-    <h1>Sign In</h1>
-    
-    <div class="input-pin-container">
-        <div class="input-user-group">
-            <svg class="user-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-            </svg>
-            <input type="text" id="userInput" placeholder="Nombre de Usuario" autocomplete="off" onkeyup="if(event.key === 'Enter') document.getElementById('pinInput').focus()">
+
+    <div class="login-card">
+        <div class="logo-container">
+            <div class="logo-icon">V</div>
+            <h1>Valia Pro</h1>
+            <p>Accede a tu panel de control</p>
         </div>
-        
-        <div class="input-pin-group">
-            <svg class="pin-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-            </svg>
-            <input type="password" id="pinInput" placeholder="PIN de 4 dígitos" maxlength="4" autocomplete="off" inputmode="numeric" onkeyup="if(event.key === 'Enter') validaEntradaUnificada()">
+
+        <div class="form-group">
+            <label for="userInput">Usuario</label>
+            <div class="input-wrapper">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <input type="text" id="userInput" placeholder="Ej: Admin" autocomplete="off" onkeyup="if(event.key === 'Enter') document.getElementById('pinInput').focus()">
+            </div>
         </div>
+
+        <div class="form-group">
+            <label for="pinInput">PIN de Acceso</label>
+            <div class="input-wrapper">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <input type="password" id="pinInput" placeholder="••••" maxlength="4" autocomplete="off" inputmode="numeric" onkeyup="if(event.key === 'Enter') validaEntradaUnificada()">
+            </div>
+        </div>
+
+        <button id="loginBtn" class="btn-login" onclick="validaEntradaUnificada()">Entrar</button>
+        <div id="errorMsg" class="error-message"></div>
     </div>
-    
-    <button id="loginBtn" class="btn-login" onclick="validaEntradaUnificada()">LOG IN</button>
-</div>
 
 <script>
-    // Credenciales unificadas (Tus claves reales)
     const URL_VALIA = "https://ietudbyosupknisbfhlj.supabase.co"; 
     const KEY_VALIA = "sb_publishable_wzDzxlSwdpKw4ok4J1qPPA_1eabsV4P";
     const _sb = supabase.createClient(URL_VALIA, KEY_VALIA);
+
+    function showError(msg) {
+        const errorEl = document.getElementById('errorMsg');
+        errorEl.innerText = msg;
+        errorEl.style.display = 'block';
+        setTimeout(() => { errorEl.style.display = 'none'; }, 3000);
+    }
 
     async function validaEntradaUnificada() {
         const userT = document.getElementById('userInput').value.trim();
@@ -240,65 +271,47 @@
         const loginBtn = document.getElementById('loginBtn');
 
         if(!userT || pinT.length < 4) {
-            alert("⚠️ Por favor, ingresa usuario y PIN completo (4 dígitos).");
+            showError("⚠️ Usuario o PIN incompleto");
             return;
         }
 
-        // Estado visual de carga
         loginBtn.disabled = true;
-        loginBtn.innerText = "VERIFICANDO...";
-        loginBtn.style.opacity = "0.7";
-
-        console.log("Validando acceso para:", userT);
+        loginBtn.innerText = "Verificando...";
 
         try {
-            // Primero buscamos el usuario para ver si existe (esto nos ayuda a depurar)
-            // Usamos .ilike para que no importe mayúsculas/minúsculas en el nombre
+            // Buscamos usuario
             const { data, error } = await _sb
                 .from('usuarios')
                 .select('*')
                 .ilike('nombre', userT)
                 .single();
 
-            if (error) {
-                console.error("Error al buscar usuario:", error.message);
-                alert("❌ USUARIO NO ENCONTRADO");
+            if (error || !data) {
+                showError("❌ Usuario no encontrado");
                 loginBtn.disabled = false;
-                loginBtn.innerText = "LOG IN";
-                loginBtn.style.opacity = "1";
+                loginBtn.innerText = "Entrar";
                 return;
             }
 
-            if (data) {
-                // Si el usuario existe, verificamos el PIN manualmente en JS 
-                // para evitar problemas de tipos de datos en la consulta (string vs number)
-                // OJO: data.pin puede ser string o number dependiendo de tu DB
-                if (String(data.pin) === String(pinT)) {
-                    console.log("Acceso correcto para:", data.nombre);
-                    localStorage.setItem('valia_user', JSON.stringify({id: data.id, nombre: data.nombre}));
-                    
-                    // Pequeña animación antes de redirigir
-                    loginBtn.innerText = "¡BIENVENIDO!";
-                    loginBtn.style.background = "linear-gradient(135deg, #00ff88, #00f2ff)";
-                    
-                    setTimeout(() => {
-                        window.location.href = 'cotizador.html'; 
-                    }, 500);
-                } else {
-                    console.error("PIN incorrecto");
-                    alert("❌ PIN INCORRECTO");
-                    document.getElementById('pinInput').value = "";
-                    loginBtn.disabled = false;
-                    loginBtn.innerText = "LOG IN";
-                    loginBtn.style.opacity = "1";
-                }
+            // Verificamos PIN (Admin: 1234)
+            if (String(data.pin) === String(pinT)) {
+                loginBtn.innerText = "¡Bienvenido!";
+                loginBtn.style.background = "linear-gradient(135deg, #10b981, #34d399)";
+                localStorage.setItem('valia_user', JSON.stringify({id: data.id, nombre: data.nombre}));
+                
+                setTimeout(() => {
+                    window.location.href = 'cotizador.html'; 
+                }, 600);
+            } else {
+                showError("❌ PIN Incorrecto");
+                document.getElementById('pinInput').value = "";
+                loginBtn.disabled = false;
+                loginBtn.innerText = "Entrar";
             }
         } catch (e) {
-            console.error("Error inesperado:", e);
-            alert("❌ ERROR DE CONEXIÓN");
+            showError("❌ Error de conexión");
             loginBtn.disabled = false;
-            loginBtn.innerText = "LOG IN";
-            loginBtn.style.opacity = "1";
+            loginBtn.innerText = "Entrar";
         }
     }
 </script>
