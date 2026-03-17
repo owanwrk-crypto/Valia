@@ -3,187 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valia - Inventario Realtime</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Valia - Cotizador Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { 
-            --primary: #2563eb; 
-            --success: #10b981; 
-            --danger: #ef4444;
-            --bg: #f1f5f9; 
-            --text: #0f172a; 
-            --border: #cbd5e1; 
+        :root {
+            --accent: #00f2ff;
+            --bg-dark: #020a16;
+            --glass: rgba(10, 25, 47, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
         }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); padding: 2rem; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem; border: 1px solid var(--border); }
-        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: end; }
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        label { font-size: 0.85rem; font-weight: 600; color: #475569; }
-        input, select { padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; }
-        button { padding: 0.7rem 1.2rem; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
-        th, td { text-align: left; padding: 1rem; border-bottom: 1px solid #f1f5f9; }
-        th { background: #f8fafc; font-size: 0.85rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
-        .btn-delete { background: var(--danger); padding: 0.4rem 0.8rem; font-size: 0.8rem; }
-        .loading { text-align: center; padding: 1rem; color: var(--primary); font-weight: bold; }
-        .badge { background: #e2e8f0; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: radial-gradient(circle at top right, #0b2a55, #020a16 80%);
+            color: white;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        h1 { font-family: 'Orbitron', sans-serif; color: var(--accent); margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        .layout { display: grid; grid-template-columns: 1fr 350px; gap: 2rem; }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .section-title { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; margin-bottom: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+
+        .flex-row { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: end; }
+
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+
+        label { font-size: 0.8rem; text-transform: uppercase; color: #aaa; }
+
+        select, input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            padding: 0.8rem;
+            color: white;
+            border-radius: 8px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+        }
+
+        button {
+            background: var(--accent);
+            color: #020a16;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--accent); }
+
+        /* Tabla de conceptos */
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th { text-align: left; font-size: 0.7rem; color: var(--accent); padding: 0.5rem; }
+        td { padding: 0.8rem 0.5rem; border-bottom: 1px solid var(--border); }
+
+        .total-panel {
+            position: sticky;
+            top: 2rem;
+            text-align: right;
+        }
+
+        .total-value { font-size: 3rem; font-family: 'Orbitron', sans-serif; color: var(--accent); margin-top: 1rem; }
+        
+        .item-row:hover { background: rgba(255,255,255,0.03); }
+        .btn-del { background: #ff4444; color: white; padding: 0.3rem 0.6rem; font-size: 0.7rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <div>
-            <h1 style="color: var(--primary); font-size: 1.8rem;">VALIA</h1>
-            <p style="font-size: 0.9rem; color: #64748b;">Gestión de Materiales e Insumos</p>
+    <h1>Cotizador Inteligente / Valia</h1>
+
+    <div class="layout">
+        <div class="left-panel">
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="section-title">Agregar Material o Insumo</div>
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Seleccionar Material</label>
+                        <select id="selectMaterial">
+                            <option value="">Cargando base de datos...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="max-width: 100px;">
+                        <label>Cantidad</label>
+                        <input type="number" id="cantMat" value="1">
+                    </div>
+                    <button onclick="agregarItem()">Añadir</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">Resumen de Conceptos</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CONCEPTO</th>
+                            <th>CANT</th>
+                            <th>U. MEDIDA</th>
+                            <th>P. UNIT</th>
+                            <th>SUBTOTAL</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaCotizacion">
+                        </tbody>
+                </table>
+            </div>
         </div>
-        <div id="dbStatus" style="font-size: 0.8rem; color: var(--success); font-weight: 600;">● Cloud Database Activa</div>
-    </header>
 
-    <section class="card">
-        <h2 style="margin-bottom: 1.2rem; font-size: 1.1rem;">Registrar Nuevo Material</h2>
-        <form id="materialForm" class="grid-form">
-            <div class="form-group">
-                <label>Nombre del Material</label>
-                <input type="text" id="nombre" placeholder="Ej: Taza 11oz Blanca" required>
+        <div class="right-panel">
+            <div class="card total-panel">
+                <div class="section-title">Cálculo de Venta</div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Margen de Utilidad (%)</label>
+                    <input type="number" id="margen" value="30" onchange="calcularTotal()">
+                </div>
+                <p style="margin-top: 1.5rem; font-size: 0.8rem; color: #aaa;">TOTAL A COBRAR</p>
+                <div class="total-value" id="displayTotal">$0.00</div>
+                <button style="width: 100%; margin-top: 1.5rem;" onclick="generarPDF()">Exportar Cotización</button>
             </div>
-            <div class="form-group">
-                <label>Categoría</label>
-                <select id="categoria">
-                    <option value="Papelería">Papelería</option>
-                    <option value="DTF">DTF</option>
-                    <option value="Sublimación">Sublimación</option>
-                    <option value="Téxtil">Téxtil</option>
-                    <option value="Otros">Otros</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Unidad de Medida</label>
-                <select id="unidad">
-                    <option value="Pieza">Pieza</option>
-                    <option value="Metro">Metro</option>
-                    <option value="CM">Centímetro</option>
-                    <option value="Pliego">Pliego</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Costo de Compra ($)</label>
-                <input type="number" id="costo" step="0.01" min="0" placeholder="0.00" required>
-            </div>
-            <button type="submit" id="btnGuardar">Guardar en Cloud</button>
-        </form>
-    </section>
-
-    <div id="loader" class="loading" style="display:none;">Procesando...</div>
-
-    <section class="card" style="padding: 0; overflow-x: auto;">
-        <table>
-            <thead>
-                <tr>
-                    <th>Material</th>
-                    <th>Categoría</th>
-                    <th>Unidad</th>
-                    <th>Costo Unitario</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="materialTableBody">
-                </tbody>
-        </table>
-    </section>
+        </div>
+    </div>
 </div>
 
 <script>
-    // --- CREDENCIALES ---
     const SUPABASE_URL = "https://ietudbyosupknisbfhlj.supabase.co"; 
     const SUPABASE_KEY = "sb_publishable_wzDzxlSwdpKw4ok4J1qPPA_1eabsV4P";
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const tableBody = document.getElementById('materialTableBody');
-    const materialForm = document.getElementById('materialForm');
-    const loader = document.getElementById('loader');
+    let dbMateriales = [];
+    let itemsCotizados = [];
 
-    // Cargar datos al iniciar
-    document.addEventListener('DOMContentLoaded', fetchMaterials);
-
-    // FUNCIÓN PARA LEER DATOS (SELECT)
-    async function fetchMaterials() {
-        const { data, error } = await _supabase
-            .from('materiales')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            console.error('Error al obtener datos:', error.message);
-            alert("No se pudo conectar con la tabla. Revisa que el nombre 'materiales' sea correcto.");
-            return;
-        }
-        renderTable(data);
-    }
-
-    // FUNCIÓN PARA INSERTAR DATOS (INSERT)
-    materialForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        loader.style.display = 'block';
-
-        const material = {
-            nombre: document.getElementById('nombre').value,
-            categoria: document.getElementById('categoria').value,
-            unidad_medida: document.getElementById('unidad').value,
-            costo_compra: parseFloat(document.getElementById('costo').value)
-        };
-
-        const { error } = await _supabase
-            .from('materiales')
-            .insert([material]);
-
-        if (error) {
-            alert("Error al guardar: " + error.message);
-        } else {
-            materialForm.reset();
-            await fetchMaterials();
-        }
-        loader.style.display = 'none';
+    document.addEventListener('DOMContentLoaded', async () => {
+        const { data } = await _supabase.from('materiales').select('*');
+        dbMateriales = data;
+        
+        const select = document.getElementById('selectMaterial');
+        select.innerHTML = dbMateriales.map(m => `
+            <option value="${m.id}">${m.nombre} ($${m.costo_compra}/${m.unidad_medida})</option>
+        `).join('');
     });
 
-    // FUNCIÓN PARA ELIMINAR (DELETE)
-    async function eliminarMaterial(id) {
-        if (!confirm('¿Seguro que quieres borrar este material de la base de datos?')) return;
-        
-        const { error } = await _supabase
-            .from('materiales')
-            .delete()
-            .eq('id', id);
+    function agregarItem() {
+        const id = document.getElementById('selectMaterial').value;
+        const cant = parseFloat(document.getElementById('cantMat').value);
+        const mat = dbMateriales.find(m => m.id === id);
 
-        if (error) {
-            alert("Error al eliminar: " + error.message);
-        } else {
-            await fetchMaterials();
-        }
+        if(!mat) return;
+
+        itemsCotizados.push({
+            id: mat.id,
+            nombre: mat.nombre,
+            cantidad: cant,
+            unidad: mat.unidad_medida,
+            precio: mat.costo_compra,
+            subtotal: mat.costo_compra * cant
+        });
+
+        renderTabla();
     }
 
-    function renderTable(materiales) {
-        if (materiales.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#64748b;">No hay materiales registrados.</td></tr>`;
-            return;
-        }
-        
-        tableBody.innerHTML = materiales.map(m => `
-            <tr>
-                <td><strong>${m.nombre}</strong></td>
-                <td><span class="badge">${m.categoria}</span></td>
-                <td>${m.unidad_medida}</td>
-                <td>$${m.costo_compra.toFixed(2)}</td>
-                <td>
-                    <button class="btn-delete" onclick="eliminarMaterial('${m.id}')">Borrar</button>
-                </td>
+    function renderTabla() {
+        const tbody = document.getElementById('listaCotizacion');
+        tbody.innerHTML = itemsCotizados.map((item, index) => `
+            <tr class="item-row">
+                <td>${item.nombre}</td>
+                <td>${item.cantidad}</td>
+                <td>${item.unidad}</td>
+                <td>$${item.precio}</td>
+                <td>$${item.subtotal.toFixed(2)}</td>
+                <td><button class="btn-del" onclick="eliminarItem(${index})">X</button></td>
             </tr>
         `).join('');
+        calcularTotal();
+    }
+
+    function eliminarItem(index) {
+        itemsCotizados.splice(index, 1);
+        renderTabla();
+    }
+
+    function calcularTotal() {
+        const costoBase = itemsCotizados.reduce((acc, item) => acc + item.subtotal, 0);
+        const margen = parseFloat(document.getElementById('margen').value) / 100;
+        
+        // Fórmula de margen sobre venta (más profesional que solo sumar el %)
+        const total = costoBase / (1 - margen);
+        
+        document.getElementById('displayTotal').innerText = `$${total.toFixed(2)}`;
+    }
+
+    function generarPDF() {
+        alert("Generando archivo para el cliente...");
+        // Aquí conectaremos jsPDF como en tu proyecto de la Quiniela
     }
 </script>
 

@@ -1,0 +1,209 @@
+/* VARIABLES INSPIRADAS EN QUINIELA UNITED */
+:root {
+    --accent: #00f2ff;
+    --accent-glow: rgba(0, 242, 255, 0.4);
+    --green: #39ff14;
+    --green-glow: rgba(57, 255, 20, 0.4);
+    --red: #ff4444;
+    --red-glow: rgba(255, 68, 68, 0.4);
+    --glass: rgba(10, 25, 47, 0.7);
+    --glass-bright: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
+    --bg-dark: #020a16;
+    --font-main: 'Rajdhani', sans-serif;
+    --font-header: 'Orbitron', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-main);
+    color: white;
+    background: radial-gradient(circle at top right, #0b2a55, #020a16 80%);
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* TÍTULOS */
+h1 {
+    font-family: var(--font-header);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    text-shadow: 0 0 15px var(--accent-glow);
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* DISEÑO DE PANELES (GLASSMORPHISM) */
+.card {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+    margin-bottom: 25px;
+}
+
+.section-title {
+    font-family: var(--font-header);
+    font-size: 0.85rem;
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+    display: inline-block;
+    text-transform: uppercase;
+}
+
+/* FORMULARIOS */
+.flex-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-width: 200px;
+}
+
+label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8892b0;
+    font-weight: 600;
+}
+
+select, input {
+    background: var(--glass-bright);
+    border: 1px solid var(--border);
+    padding: 12px;
+    color: white;
+    border-radius: 10px;
+    font-family: var(--font-main);
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+select:focus, input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+/* BOTONES ESTILO CYBER */
+button {
+    background: var(--accent);
+    color: var(--bg-dark);
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-family: var(--font-header);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px var(--accent-glow);
+    filter: brightness(1.2);
+}
+
+/* TABLAS */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th {
+    text-align: left;
+    font-family: var(--font-header);
+    font-size: 0.7rem;
+    color: #4cc9f0;
+    padding: 15px 10px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+}
+
+td {
+    padding: 15px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 1rem;
+}
+
+.text-accent {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.btn-del {
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--red);
+    padding: 5px 10px;
+    font-size: 0.8rem;
+}
+
+.btn-del:hover {
+    background: var(--red);
+    color: white;
+    box-shadow: 0 0 15px var(--red-glow);
+}
+
+/* PANEL DE TOTALES */
+.total-panel {
+    position: sticky;
+    top: 20px;
+    border: 2px solid var(--accent);
+    background: rgba(0, 242, 255, 0.05);
+}
+
+.total-value {
+    font-family: var(--font-header);
+    font-size: 3.5rem;
+    color: var(--accent);
+    text-shadow: 0 0 20px var(--accent-glow);
+    margin: 15px 0;
+}
+
+/* ANIMACIONES */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease forwards;
+}
+
+/* RESPONSIVO */
+@media (max-width: 900px) {
+    .layout {
+        display: flex;
+        flex-direction: column;
+    }
+    .total-panel {
+        position: static;
+    }
+}
