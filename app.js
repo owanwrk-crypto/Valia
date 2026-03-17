@@ -17,6 +17,28 @@ function switchTab(tabId) {
 
 // --- LÓGICA DE INVENTARIO ---
 
+// Cálculo en tiempo real del costo unitario
+function calcularCostoUnitario() {
+    const costoLote = parseFloat(document.getElementById('matCostoLote').value) || 0;
+    const cantidad = parseFloat(document.getElementById('matStock').value) || 0;
+    const displayUnitario = document.getElementById('matCostoUnitario');
+
+    if (costoLote < 0 || cantidad < 0) {
+        displayUnitario.value = "Error: Negativo";
+        displayUnitario.style.color = "#ff4444";
+        return;
+    }
+
+    if (cantidad > 0) {
+        const unitario = costoLote / cantidad;
+        displayUnitario.value = unitario.toFixed(2);
+        displayUnitario.style.color = "var(--accent)";
+    } else {
+        displayUnitario.value = "0.00";
+        displayUnitario.style.color = "var(--accent)";
+    }
+}
+
 // Cargar materiales desde Supabase
 async function cargarMateriales() {
     console.log("Cargando materiales...");
@@ -58,12 +80,18 @@ async function cargarMateriales() {
 async function guardarNuevoMaterial() {
     const nombre = document.getElementById('matNombre').value.trim();
     const categoria = document.getElementById('matCategoria').value;
-    const costo = parseFloat(document.getElementById('matCosto').value) || 0;
+    const costoLote = parseFloat(document.getElementById('matCostoLote').value) || 0;
     const unidad = document.getElementById('matUnidad').value;
     const stock = parseFloat(document.getElementById('matStock').value) || 0;
+    const costoUnitario = stock > 0 ? (costoLote / stock) : 0;
 
     if (!nombre) {
         alert("⚠️ Por favor ingresa el nombre del material.");
+        return;
+    }
+
+    if (costoLote < 0 || stock < 0) {
+        alert("❌ No se permiten valores negativos.");
         return;
     }
 
@@ -77,7 +105,7 @@ async function guardarNuevoMaterial() {
             .insert([{
                 nombre,
                 categoria,
-                costo_compra: costo,
+                costo_compra: costoUnitario, // Guardamos el unitario como costo de compra
                 unidad_medida: unidad,
                 stock_actual: stock,
                 stock_minimo: 5 // Valor por defecto
@@ -89,8 +117,9 @@ async function guardarNuevoMaterial() {
         
         // Limpiar formulario
         document.getElementById('matNombre').value = '';
-        document.getElementById('matCosto').value = '';
+        document.getElementById('matCostoLote').value = '';
         document.getElementById('matStock').value = '';
+        document.getElementById('matCostoUnitario').value = '0.00';
         
         // Recargar tabla
         cargarMateriales();
@@ -108,3 +137,4 @@ async function guardarNuevoMaterial() {
 window.switchTab = switchTab;
 window.cargarMateriales = cargarMateriales;
 window.guardarNuevoMaterial = guardarNuevoMaterial;
+window.calcularCostoUnitario = calcularCostoUnitario;
