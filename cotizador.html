@@ -104,23 +104,28 @@
             margin-bottom: 5px;
         }
 
+        /* Solución para el problema de visibilidad en dropdowns (Select y Option) */
+        select {
+            background-color: #1e293b !important; /* Fondo oscuro sólido obligatorio */
+            color: #ffffff !important; /* Texto blanco obligatorio */
+        }
+
+        option {
+            background-color: #1e293b !important; /* Fondo oscuro para las opciones */
+            color: #ffffff !important; /* Texto blanco para las opciones */
+            padding: 10px;
+        }
+
         .form-field input, .form-field select {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
+            background: #1e293b; /* Fondo sólido en lugar de transparente para evitar problemas */
             border: 1px solid var(--border);
-            padding: 12px 14px; /* Un poco más de padding para mejor legibilidad */
+            padding: 12px 14px;
             border-radius: 10px;
-            color: #ffffff; /* Blanco puro para máximo contraste */
+            color: #ffffff;
             font-size: 1rem;
             outline: none;
             transition: all 0.2s ease;
-        }
-
-        /* Solución para el problema de visibilidad en dropdowns */
-        .form-field select option {
-            background-color: #1e293b; /* Fondo oscuro sólido para las opciones */
-            color: #ffffff;
-            padding: 10px;
         }
 
         .form-field input:focus, .form-field select:focus {
@@ -391,7 +396,7 @@
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <label style="font-size: 0.85rem; color: rgba(255,255,255,0.7); font-weight: 600;">Categoría:</label>
                             <select id="filterCategoria" onchange="filtrarInventario()" 
-                                style="background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: #ffffff; padding: 8px 12px; border-radius: 10px; outline: none; font-size: 0.85rem; cursor: pointer; transition: 0.3s; border-color: rgba(255,255,255,0.2);">
+                                style="background: #1e293b; border: 1px solid var(--border); color: #ffffff; padding: 8px 12px; border-radius: 10px; outline: none; font-size: 0.85rem; cursor: pointer; transition: 0.3s; border-color: rgba(255,255,255,0.2);">
                                 <option value="all">Ver todo</option>
                                 <option value="Tazas">Tazas</option>
                                 <option value="Textiles">Textiles</option>
