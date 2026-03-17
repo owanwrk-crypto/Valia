@@ -3,56 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valia - Acceso Privado</title>
+    <title>Valia - Acceso</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #00f2ff; --bg: #020a16; }
+        :root { --accent: #00f2ff; --bg: #020a16; --glass: rgba(10, 25, 47, 0.9); }
         body {
             background: radial-gradient(circle, #0b2a55, #020a16);
             color: white; font-family: 'Rajdhani', sans-serif;
             display: flex; justify-content: center; align-items: center;
-            height: 100vh; margin: 0; overflow: hidden;
+            height: 100vh; margin: 0;
         }
         .login-card {
-            background: rgba(10, 25, 47, 0.8);
-            padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-            text-align: center; backdrop-filter: blur(10px); width: 300px;
+            background: var(--glass); padding: 40px; border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1); text-align: center;
+            backdrop-filter: blur(15px); width: 320px; box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
-        h1 { font-family: 'Orbitron', sans-serif; color: var(--accent); font-size: 1.5rem; margin-bottom: 20px; }
+        h1 { font-family: 'Orbitron', sans-serif; color: var(--accent); font-size: 1.4rem; margin-bottom: 25px; letter-spacing: 2px; }
+        
+        .input-group { margin-bottom: 20px; text-align: left; }
+        label { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-left: 5px; }
+        
+        input {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px; border-radius: 8px; color: white; font-family: 'Orbitron';
+            font-size: 1rem; margin-top: 5px; box-sizing: border-box; outline: none;
+        }
+        input:focus { border-color: var(--accent); }
+
         .pin-display {
-            background: rgba(0,0,0,0.3); border: 2px solid var(--accent);
-            border-radius: 10px; padding: 15px; font-size: 2rem;
-            letter-spacing: 10px; margin-bottom: 20px; height: 40px;
+            background: rgba(0,0,0,0.5); border: 2px solid var(--accent);
+            border-radius: 10px; padding: 10px; font-size: 1.8rem;
+            letter-spacing: 8px; margin: 15px 0; height: 35px; color: var(--accent);
         }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .key {
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: white; padding: 20px; border-radius: 10px; font-size: 1.2rem;
+            color: white; padding: 15px; border-radius: 8px; font-size: 1.1rem;
             cursor: pointer; transition: 0.2s; font-family: 'Orbitron';
         }
         .key:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 15px var(--accent); }
-        .key.clear { color: #ff4444; }
+        .btn-login {
+            grid-column: span 3; margin-top: 10px; background: var(--accent);
+            color: var(--bg); border: none; padding: 15px; border-radius: 8px;
+            font-family: 'Orbitron'; font-weight: bold; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
 <div class="login-card">
-    <h1>VALIA AUTH</h1>
-    <div class="pin-display" id="display">****</div>
+    <h1>VALIA SYSTEM</h1>
+    
+    <div class="input-group">
+        <label>Usuario</label>
+        <input type="text" id="userInput" placeholder="Ej: Administrador" autocomplete="off">
+    </div>
+
+    <label>PIN de Seguridad</label>
+    <div class="pin-display" id="pinView">****</div>
+    
     <div class="keypad">
-        <button class="key" onclick="press(1)">1</button>
-        <button class="key" onclick="press(2)">2</button>
-        <button class="key" onclick="press(3)">3</button>
-        <button class="key" onclick="press(4)">4</button>
-        <button class="key" onclick="press(5)">5</button>
-        <button class="key" onclick="press(6)">6</button>
-        <button class="key" onclick="press(7)">7</button>
-        <button class="key" onclick="press(8)">8</button>
-        <button class="key" onclick="press(9)">9</button>
-        <button class="key clear" onclick="clearPin()">C</button>
-        <button class="key" onclick="press(0)">0</button>
-        <button class="key" style="color:var(--accent)" onclick="login()">OK</button>
+        <button class="key" onclick="add(1)">1</button>
+        <button class="key" onclick="add(2)">2</button>
+        <button class="key" onclick="add(3)">3</button>
+        <button class="key" onclick="add(4)">4</button>
+        <button class="key" onclick="add(5)">5</button>
+        <button class="key" onclick="add(6)">6</button>
+        <button class="key" onclick="add(7)">7</button>
+        <button class="key" onclick="add(8)">8</button>
+        <button class="key" onclick="add(9)">9</button>
+        <button class="key" style="color:#ff4444" onclick="clearP()">C</button>
+        <button class="key" onclick="add(0)">0</button>
+        <button class="btn-login" onclick="validaEntrada()">ENTRAR AL SISTEMA</button>
     </div>
 </div>
 
@@ -61,36 +84,29 @@
     const KEY_SB = "sb_publishable_wzDzxlSwdpKw4ok4J1qPPA_1eabsV4P";
     const _sb = supabase.createClient(URL_SB, KEY_SB);
 
-    let currentPin = "";
+    let pass = "";
 
-    function press(n) {
-        if(currentPin.length < 4) {
-            currentPin += n;
-            updateDisplay();
-        }
-    }
+    function add(n) { if(pass.length < 4) { pass += n; update(); } }
+    function clearP() { pass = ""; update(); }
+    function update() { document.getElementById('pinView').innerText = "*".repeat(pass.length) || "****"; }
 
-    function clearPin() { currentPin = ""; updateDisplay(); }
-
-    function updateDisplay() {
-        document.getElementById('display').innerText = "*".repeat(currentPin.length) || "****";
-    }
-
-    async function login() {
-        if(currentPin.length < 4) return;
+    async function validaEntrada() {
+        const user = document.getElementById('userInput').value;
+        if(!user || pass.length < 4) return alert("Completa los datos");
 
         const { data, error } = await _sb
             .from('usuarios')
             .select('*')
-            .eq('pin', currentPin)
+            .eq('nombre', user)
+            .eq('pin', pass)
             .single();
 
         if (data) {
-            localStorage.setItem('valia_token', 'session_active');
-            window.location.href = 'cotizador.html'; // Nombre de tu página principal
+            localStorage.setItem('valia_user', JSON.stringify({id: data.id, nombre: data.nombre}));
+            window.location.href = 'cotizador.html';
         } else {
-            alert("PIN INCORRECTO");
-            clearPin();
+            alert("USUARIO O PIN INCORRECTOS");
+            clearP();
         }
     }
 </script>
