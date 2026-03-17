@@ -3,82 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valia - Cotizador Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Valia - Acceso Privado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        :root { --accent: #00f2ff; --bg: #020a16; }
+        body {
+            background: radial-gradient(circle, #0b2a55, #020a16);
+            color: white; font-family: 'Rajdhani', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; margin: 0; overflow: hidden;
+        }
+        .login-card {
+            background: rgba(10, 25, 47, 0.8);
+            padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            text-align: center; backdrop-filter: blur(10px); width: 300px;
+        }
+        h1 { font-family: 'Orbitron', sans-serif; color: var(--accent); font-size: 1.5rem; margin-bottom: 20px; }
+        .pin-display {
+            background: rgba(0,0,0,0.3); border: 2px solid var(--accent);
+            border-radius: 10px; padding: 15px; font-size: 2rem;
+            letter-spacing: 10px; margin-bottom: 20px; height: 40px;
+        }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .key {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: white; padding: 20px; border-radius: 10px; font-size: 1.2rem;
+            cursor: pointer; transition: 0.2s; font-family: 'Orbitron';
+        }
+        .key:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 15px var(--accent); }
+        .key.clear { color: #ff4444; }
+    </style>
 </head>
 <body>
 
-<div class="container">
-    <header class="animate-in">
-        <h1>VALIA // CONTROL DE COSTOS</h1>
-        <p id="fecha-actual"></p>
-    </header>
-
-    <div class="layout">
-        <div class="left-panel animate-in">
-            <div class="card glass-card">
-                <div class="section-title"><i class="fas fa-plus-circle"></i> AGREGAR CONCEPTO</div>
-                <div class="flex-row">
-                    <div class="form-group" style="max-width: 150px;">
-                        <label>Categoría</label>
-                        <select id="tipoItem" onchange="actualizarInterfaz()">
-                            <option value="material">📦 Material</option>
-                            <option value="servicio">🛠 Servicio</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label id="labelItem">Seleccionar Item</label>
-                        <select id="selectItem"></select>
-                    </div>
-                    <div class="form-group" style="max-width: 100px;">
-                        <label id="labelCant">Cantidad</label>
-                        <input type="number" id="cantidadItem" value="1" min="0.1" step="0.1">
-                    </div>
-                    <button class="btn-neon" onclick="agregarItemALista()">Añadir</button>
-                </div>
-            </div>
-
-            <div class="card glass-card">
-                <div class="section-title"><i class="fas fa-file-invoice-dollar"></i> RESUMEN</div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Concepto</th>
-                                <th>Cant.</th>
-                                <th>P. Unit.</th>
-                                <th>Subtotal</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="listaCotizacion"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="right-panel animate-in">
-            <div class="card total-card">
-                <div class="section-title" style="justify-content:center;">RESULTADO FINAL</div>
-                <div class="form-group" style="margin: 20px 0;">
-                    <label>Margen de Utilidad (%)</label>
-                    <input type="number" id="margen" value="30" onchange="calcularFinal()">
-                </div>
-                <div class="total-label">PRECIO DE VENTA</div>
-                <div class="total-value" id="displayTotal">$0.00</div>
-                <button class="btn-export" onclick="generarPDF()">
-                    <i class="fas fa-download"></i> EXPORTAR PDF
-                </button>
-            </div>
-        </div>
+<div class="login-card">
+    <h1>VALIA AUTH</h1>
+    <div class="pin-display" id="display">****</div>
+    <div class="keypad">
+        <button class="key" onclick="press(1)">1</button>
+        <button class="key" onclick="press(2)">2</button>
+        <button class="key" onclick="press(3)">3</button>
+        <button class="key" onclick="press(4)">4</button>
+        <button class="key" onclick="press(5)">5</button>
+        <button class="key" onclick="press(6)">6</button>
+        <button class="key" onclick="press(7)">7</button>
+        <button class="key" onclick="press(8)">8</button>
+        <button class="key" onclick="press(9)">9</button>
+        <button class="key clear" onclick="clearPin()">C</button>
+        <button class="key" onclick="press(0)">0</button>
+        <button class="key" style="color:var(--accent)" onclick="login()">OK</button>
     </div>
 </div>
 
-<script src="app.js"></script>
+<script>
+    const URL_SB = "https://ietudbyosupknisbfhlj.supabase.co"; 
+    const KEY_SB = "sb_publishable_wzDzxlSwdpKw4ok4J1qPPA_1eabsV4P";
+    const _sb = supabase.createClient(URL_SB, KEY_SB);
+
+    let currentPin = "";
+
+    function press(n) {
+        if(currentPin.length < 4) {
+            currentPin += n;
+            updateDisplay();
+        }
+    }
+
+    function clearPin() { currentPin = ""; updateDisplay(); }
+
+    function updateDisplay() {
+        document.getElementById('display').innerText = "*".repeat(currentPin.length) || "****";
+    }
+
+    async function login() {
+        if(currentPin.length < 4) return;
+
+        const { data, error } = await _sb
+            .from('usuarios')
+            .select('*')
+            .eq('pin', currentPin)
+            .single();
+
+        if (data) {
+            localStorage.setItem('valia_token', 'session_active');
+            window.location.href = 'cotizador.html'; // Nombre de tu página principal
+        } else {
+            alert("PIN INCORRECTO");
+            clearPin();
+        }
+    }
+</script>
 </body>
 </html>
