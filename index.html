@@ -278,37 +278,69 @@
         loginBtn.disabled = true;
         loginBtn.innerText = "Verificando...";
 
+        console.log("Intentando login con usuario:", userT);
+
         try {
-            // Buscamos usuario
-            const { data, error } = await _sb
+            // Intentamos buscar por 'nombre'. 
+            // Si el usuario dice que tiene id-1 nombre-admin-pin-1234, 
+            // tal vez el nombre de la columna es 'nombre' o 'nombre-admin'? 
+            // Vamos a intentar con 'nombre' primero.
+            let { data, error } = await _sb
                 .from('usuarios')
                 .select('*')
                 .ilike('nombre', userT)
-                .single();
+                .maybeSingle(); // maybeSingle no da error si no encuentra nada
 
-            if (error || !data) {
-                showError("❌ Usuario no encontrado");
+            if (error) {
+                console.error("Error de Supabase:", error);
+                showError("❌ Error DB: " + error.message);
                 loginBtn.disabled = false;
                 loginBtn.innerText = "Entrar";
                 return;
             }
 
-            // Verificamos PIN (Admin: 1234)
-            if (String(data.pin) === String(pinT)) {
-                loginBtn.innerText = "¡Bienvenido!";
-                loginBtn.style.background = "linear-gradient(135deg, #10b981, #34d399)";
-                localStorage.setItem('valia_user', JSON.stringify({id: data.id, nombre: data.nombre}));
+            // Si no encontró nada por 'nombre', intentamos buscar por 'usuario' 
+            // solo como respaldo por si el nombre de la columna es ese.
+            if (!data) {
+                const altSearch = await _sb
+                    .from('usuarios')
+                    .select('*')
+                    .ilike('usuario', userT)
+                    .maybeSingle();
                 
-                setTimeout(() => {
-                    window.location.href = 'cotizador.html'; 
-                }, 600);
-            } else {
-                showError("❌ PIN Incorrecto");
-                document.getElementById('pinInput').value = "";
+                if (altSearch.data) {
+                    data = altSearch.data;
+                }
+            }
+
+            if (!data) {
+                showError("❌ Usuario '" + userT + "' no encontrado en la tabla 'usuarios'");
                 loginBtn.disabled = false;
                 loginBtn.innerText = "Entrar";
+                return;
+            }
+
+            if (data) {
+                console.log("Usuario encontrado:", data);
+                
+                // Comparamos el PIN. Importante: convertimos ambos a String por si en la DB es número
+                if (String(data.pin) === String(pinT)) {
+                    loginBtn.innerText = "¡Bienvenido!";
+                    loginBtn.style.background = "linear-gradient(135deg, #10b981, #34d399)";
+                    localStorage.setItem('valia_user', JSON.stringify({id: data.id, nombre: data.nombre}));
+                    
+                    setTimeout(() => {
+                        window.location.href = 'cotizador.html'; 
+                    }, 600);
+                } else {
+                    showError("❌ PIN Incorrecto para " + data.nombre);
+                    document.getElementById('pinInput').value = "";
+                    loginBtn.disabled = false;
+                    loginBtn.innerText = "Entrar";
+                }
             }
         } catch (e) {
+            console.error("Error crítico:", e);
             showError("❌ Error de conexión");
             loginBtn.disabled = false;
             loginBtn.innerText = "Entrar";
