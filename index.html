@@ -3,112 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valia - Acceso</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+    <title>Valia Pro - Sistema Unificado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --accent: #00f2ff; --bg: #020a16; --glass: rgba(10, 25, 47, 0.9); }
-        body {
-            background: radial-gradient(circle, #0b2a55, #020a16);
-            color: white; font-family: 'Rajdhani', sans-serif;
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; margin: 0;
-        }
-        .login-card {
-            background: var(--glass); padding: 40px; border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1); text-align: center;
-            backdrop-filter: blur(15px); width: 320px; box-shadow: 0 0 30px rgba(0,0,0,0.5);
-        }
-        h1 { font-family: 'Orbitron', sans-serif; color: var(--accent); font-size: 1.4rem; margin-bottom: 25px; letter-spacing: 2px; }
-        
-        .input-group { margin-bottom: 20px; text-align: left; }
-        label { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-left: 5px; }
-        
-        input {
-            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-            padding: 12px; border-radius: 8px; color: white; font-family: 'Orbitron';
-            font-size: 1rem; margin-top: 5px; box-sizing: border-box; outline: none;
-        }
-        input:focus { border-color: var(--accent); }
-
-        .pin-display {
-            background: rgba(0,0,0,0.5); border: 2px solid var(--accent);
-            border-radius: 10px; padding: 10px; font-size: 1.8rem;
-            letter-spacing: 8px; margin: 15px 0; height: 35px; color: var(--accent);
-        }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .key {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: white; padding: 15px; border-radius: 8px; font-size: 1.1rem;
-            cursor: pointer; transition: 0.2s; font-family: 'Orbitron';
-        }
-        .key:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 15px var(--accent); }
-        .btn-login {
-            grid-column: span 3; margin-top: 10px; background: var(--accent);
-            color: var(--bg); border: none; padding: 15px; border-radius: 8px;
-            font-family: 'Orbitron'; font-weight: bold; cursor: pointer;
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="login-card">
-    <h1>VALIA SYSTEM</h1>
-    
-    <div class="input-group">
-        <label>Usuario</label>
-        <input type="text" id="userInput" placeholder="Ej: Administrador" autocomplete="off">
-    </div>
+    <section id="login-screen" class="view">
+        <div class="login-card">
+            <h1>VALIA SYSTEM</h1>
+            <div class="input-group">
+                <label>Usuario</label>
+                <input type="text" id="userInput" placeholder="Nombre" autocomplete="off">
+            </div>
+            <label>PIN DE ACCESO</label>
+            <div class="pin-display" id="pinView">****</div>
+            <div class="keypad">
+                <button class="key" onclick="addPin(1)">1</button>
+                <button class="key" onclick="addPin(2)">2</button>
+                <button class="key" onclick="addPin(3)">3</button>
+                <button class="key" onclick="addPin(4)">4</button>
+                <button class="key" onclick="addPin(5)">5</button>
+                <button class="key" onclick="addPin(6)">6</button>
+                <button class="key" onclick="addPin(7)">7</button>
+                <button class="key" onclick="addPin(8)">8</button>
+                <button class="key" onclick="addPin(9)">9</button>
+                <button class="key" style="color:#ff4444" onclick="clearPin()">C</button>
+                <button class="key" onclick="addPin(0)">0</button>
+                <button class="btn-login" onclick="intentarLogin()">ENTRAR</button>
+            </div>
+        </div>
+    </section>
 
-    <label>PIN de Seguridad</label>
-    <div class="pin-display" id="pinView">****</div>
-    
-    <div class="keypad">
-        <button class="key" onclick="add(1)">1</button>
-        <button class="key" onclick="add(2)">2</button>
-        <button class="key" onclick="add(3)">3</button>
-        <button class="key" onclick="add(4)">4</button>
-        <button class="key" onclick="add(5)">5</button>
-        <button class="key" onclick="add(6)">6</button>
-        <button class="key" onclick="add(7)">7</button>
-        <button class="key" onclick="add(8)">8</button>
-        <button class="key" onclick="add(9)">9</button>
-        <button class="key" style="color:#ff4444" onclick="clearP()">C</button>
-        <button class="key" onclick="add(0)">0</button>
-        <button class="btn-login" onclick="validaEntrada()">ENTRAR AL SISTEMA</button>
-    </div>
-</div>
+    <section id="app-screen" class="view" style="display: none;">
+        <div class="header">
+            <div>
+                <h1>VALIA PRO</h1>
+                <p id="userNameDisplay">Bienvenido</p>
+            </div>
+            <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+        </div>
 
-<script>
-    const URL_SB = "https://ietudbyosupknisbfhlj.supabase.co"; 
-    const KEY_SB = "sb_publishable_wzDzxlSwdpKw4ok4J1qPPA_1eabsV4P";
-    const _sb = supabase.createClient(URL_SB, KEY_SB);
+        <nav class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('tab-cotizador')">Cotizador</button>
+            <button class="tab-btn" onclick="switchTab('tab-inventario')">Inventario</button>
+        </nav>
 
-    let pass = "";
+        <div id="tab-cotizador" class="tab-content active">
+            <div class="layout">
+                <div class="left-panel">
+                    <div class="card flex-row">
+                        <div class="form-group">
+                            <label>Tipo</label>
+                            <select id="tipoItem" onchange="actualizarInterfaz()"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Item</label>
+                            <select id="selectItem"></select>
+                        </div>
+                        <div class="form-group" style="max-width: 80px;">
+                            <label>Cant.</label>
+                            <input type="number" id="cantidadItem" value="1">
+                        </div>
+                        <button class="btn-add" onclick="agregarAlPresupuesto()">Añadir</button>
+                    </div>
+                    <div class="card">
+                        <table id="tablaCotizacion">
+                            <thead>
+                                <tr><th>Concepto</th><th>Cant.</th><th>P. Unit</th><th>Total</th><th></th></tr>
+                            </thead>
+                            <tbody id="listaCotizacion"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <div class="card total-box">
+                        <label>Margen (%)</label>
+                        <input type="number" id="margen" value="30" onchange="calcularFinal()">
+                        <div class="total-val" id="displayTotal">$0.00</div>
+                        <button class="btn-export" onclick="generarPDF()">EXPORTAR PDF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    function add(n) { if(pass.length < 4) { pass += n; update(); } }
-    function clearP() { pass = ""; update(); }
-    function update() { document.getElementById('pinView').innerText = "*".repeat(pass.length) || "****"; }
+        <div id="tab-inventario" class="tab-content">
+            <div class="card">
+                <h2>Gestión de Inventario</h2>
+                <p>Aquí podrás dar de alta tus materiales pronto...</p>
+            </div>
+        </div>
+    </section>
 
-    async function validaEntrada() {
-        const user = document.getElementById('userInput').value;
-        if(!user || pass.length < 4) return alert("Completa los datos");
-
-        const { data, error } = await _sb
-            .from('usuarios')
-            .select('*')
-            .eq('nombre', user)
-            .eq('pin', pass)
-            .single();
-
-        if (data) {
-            localStorage.setItem('valia_user', JSON.stringify({id: data.id, nombre: data.nombre}));
-            window.location.href = 'cotizador.html';
-        } else {
-            alert("USUARIO O PIN INCORRECTOS");
-            clearP();
-        }
-    }
-</script>
+    <script src="app.js"></script>
 </body>
 </html>

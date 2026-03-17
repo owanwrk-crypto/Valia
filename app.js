@@ -1,29 +1,49 @@
-// VERIFICACIÓN DE SESIÓN
-const usuarioLogueado = JSON.parse(localStorage.getItem('valia_user'));
+// ... (Aquí van tus credenciales de Supabase y funciones de carga de datos) ...
 
-if (!usuarioLogueado) {
-    window.location.href = 'index.html';
+// FUNCIÓN PARA CAMBIAR DE PESTAÑA
+function switchTab(tabId) {
+    // 1. Ocultar todos los contenidos de pestaña
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // 2. Quitar el estado 'active' de los botones
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // 3. Mostrar la pestaña seleccionada
+    document.getElementById(tabId).classList.add('active');
+
+    // 4. Activar el botón correspondiente
+    event.currentTarget.classList.add('active');
 }
 
-// Opcional: Mostrar nombre en la interfaz
-document.addEventListener('DOMContentLoaded', () => {
-    const headerP = document.querySelector('header p');
-    if(headerP) headerP.innerText = `Sesión iniciada: ${usuarioLogueado.nombre}`;
-});
+// LOGICA DE LOGIN ACTUALIZADA PARA CAMBIO DE VISTA
+async function intentarLogin() {
+    const userTyped = document.getElementById('userInput').value.trim();
+    if(!userTyped || pass.length < 4) return alert("Datos incompletos");
 
-function logout() {
-    localStorage.removeItem('valia_user');
-    window.location.href = 'index.html';
-}// PROTECCIÓN DE RUTA
-(function() {
-    const session = localStorage.getItem('valia_token');
-    if (!session) {
-        window.location.href = 'index.html';
+    const { data, error } = await _sb
+        .from('usuarios')
+        .select('*')
+        .ilike('nombre', userTyped)
+        .eq('pin', pass)
+        .single();
+
+    if (data) {
+        localStorage.setItem('valia_user', JSON.stringify(data));
+        mostrarApp(); // En lugar de redireccionar, cambiamos la vista
+    } else {
+        alert("Acceso Denegado");
+        clearPin();
     }
-})();
+}
 
-// BOTÓN CERRAR SESIÓN (Añadir esta función para usarla en un botón si quieres)
-function cerrarSesion() {
-    localStorage.removeItem('valia_token');
-    window.location.href = 'index.html';
+function mostrarApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    document.getElementById('userNameDisplay').innerText = `Hola, ${JSON.parse(localStorage.getItem('valia_user')).nombre}`;
+    // Aquí disparas la carga de materiales
+    cargarMateriales(); 
 }
