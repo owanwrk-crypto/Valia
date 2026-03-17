@@ -370,3 +370,65 @@ tr:hover {
 #searchMaterial {
     color: #ffffff !important;
 }
+
+/* Estilos para tablas responsivas */
+.tabla-responsiva {
+    overflow-x: auto;
+    width: 100%;
+}
+
+.tabla-ventas {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.tabla-ventas thead {
+    background: rgba(0, 242, 255, 0.05);
+}
+
+.tabla-ventas th {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+    font-family: 'Space Grotesk';
+}
+
+.tabla-ventas tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s;
+}
+
+.tabla-ventas tbody tr:hover {
+    background: rgba(0, 242, 255, 0.1);
+}
+
+.tabla-ventas td {
+    padding: 10px 12px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.tabla-ventas .precio-total {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.texto-gris {
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
+    padding: 20px;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .tabla-ventas {
+        font-size: 0.75rem;
+    }
+    
+    .tabla-ventas th,
+    .tabla-ventas td {
+        padding: 8px;
+    }
+}

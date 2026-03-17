@@ -5,9 +5,11 @@ const _sb = supabase.createClient(URL_VALIA, KEY_VALIA);
 
 // --- ESTADO GLOBAL ---
 let materialesData = []; // Para almacenar los datos cargados y facilitar filtrado
+let serviciosData = []; // Nuevos: servicios (diseño, planchado, etc)
 let currentFilter = localStorage.getItem('filtro_categoria') || 'all';
 let currentSearch = ""; // Para el filtro por texto
 let cotizacionActual = []; // Para la pestaña de cotizaciones
+let ventasDelDia = []; // Nuevas: ventas guardadas hoy
 
 // --- UTILIDADES ---
 
@@ -89,6 +91,28 @@ async function cargarMateriales() {
     } catch (err) {
         console.error("Error al cargar materiales:", err.message);
         tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ff4444; padding: 20px;">Error al cargar datos.</td></tr>`;
+    }
+}
+
+// NUEVO: Cargar servicios desde Supabase
+async function cargarServicios() {
+    console.log("Cargando servicios...");
+    
+    try {
+        const { data, error } = await _sb
+            .from('servicios')
+            .select('*')
+            .order('categoria', { ascending: true })
+            .order('nombre', { ascending: true });
+
+        if (error && error.code !== 'PGRST116') throw error; // Ignorar si tabla no existe
+        
+        serviciosData = data || [];
+        console.log(`✅ Servicios cargados: ${serviciosData.length} items`);
+        
+    } catch (err) {
+        console.warn("Servicios no disponibles:", err.message);
+        serviciosData = [];
     }
 }
 
@@ -356,8 +380,8 @@ let configuracionImpuestos = {
     ]
 };
 
-// Cargar materiales en dropdown de cotización
-async function cargarMaterialesEnCotizacion() {
+// NUEVO: Cargar materiales Y servicios en dropdown (carga dual)
+async function cargarMaterialesYServiciosEnCotizacion() {
     const select = document.getElementById('cotMaterial');
     if (!select) return;
     
@@ -366,43 +390,77 @@ async function cargarMaterialesEnCotizacion() {
         select.remove(1);
     }
     
+    // Cargar si no están cargados
     if (materialesData.length === 0) {
         await cargarMateriales();
     }
+    if (serviciosData.length === 0) {
+        await cargarServicios();
+    }
     
-    // Llenar con opciones agrupadas por categoría
+    // Combinar materiales y servicios
     let categoryMap = {};
     
+    // Agregar materiales
     materialesData.forEach(material => {
         if (!material.costo_compra) {
             console.warn(`Material sin precio: ${material.nombre}`);
             return;
         }
         
-        if (!categoryMap[material.categoria]) {
-            categoryMap[material.categoria] = [];
+        const cat = material.categoria || 'General';
+        if (!categoryMap[cat]) {
+            categoryMap[cat] = [];
         }
         
-        categoryMap[material.categoria].push(material);
+        categoryMap[cat].push({
+            ...material,
+            tipo: 'material'
+        });
+    });
+    
+    // Agregar servicios
+    serviciosData.forEach(servicio => {
+        if (!servicio.precio) {
+            console.warn(`Servicio sin precio: ${servicio.nombre}`);
+            return;
+        }
+        
+        const cat = servicio.categoria || 'Servicios';
+        if (!categoryMap[cat]) {
+            categoryMap[cat] = [];
+        }
+        
+        categoryMap[cat].push({
+            ...servicio,
+            tipo: 'servicio',
+            costo_compra: servicio.precio, // Normalizar campo
+            unidad_medida: servicio.unidad || 'servicio'
+        });
     });
     
     // Crear optgroup por categoría
     Object.keys(categoryMap).sort().forEach(categoria => {
         const optgroup = document.createElement('optgroup');
-        optgroup.label = categoria;
+        optgroup.label = `${categoria} ${categoryMap[categoria].some(i => i.tipo === 'servicio') ? '🎨' : '📦'}`;
         
-        categoryMap[categoria].forEach(material => {
+        categoryMap[categoria].forEach(item => {
             const option = document.createElement('option');
-            option.value = material.id;
-            option.textContent = `${material.nombre} - ${formatCurrency(material.costo_compra)} / ${material.unidad_medida}`;
-            option.dataset.precio = material.costo_compra;
-            option.dataset.nombre = material.nombre;
-            option.dataset.unidad = material.unidad_medida;
+            const tipo = item.tipo === 'servicio' ? '🎨' : '📦';
+            option.value = `${item.tipo}-${item.id}`;
+            option.textContent = `${tipo} ${item.nombre} - ${formatCurrency(item.costo_compra || item.precio)} / ${item.unidad_medida}`;
+            option.dataset.precio = item.costo_compra || item.precio;
+            option.dataset.nombre = item.nombre;
+            option.dataset.unidad = item.unidad_medida;
+            option.dataset.tipo = item.tipo;
+            option.dataset.id = item.id;
             optgroup.appendChild(option);
         });
         
         select.appendChild(optgroup);
     });
+    
+    console.log(`✅ Cargados: ${materialesData.length} materiales + ${serviciosData.length} servicios`);
 }
 
 // Obtener descuento por volumen
@@ -735,6 +793,203 @@ async function guardarCotizacion() {
     actualizarTablaCotizacion();
 }
 
+// Guardar venta diaria (con date y user_id)
+async function guardarVentaDelDia(detalles = {}) {
+    if (cotizacionActual.length === 0) {
+        console.warn('No hay items para guardar como venta');
+        return;
+    }
+    
+    const usuario = JSON.parse(localStorage.getItem('valia_user') || '{}');
+    const ahora = new Date();
+    const fechaISO = ahora.toISOString();
+    
+    // Calcular totales
+    let totalCosto = 0;
+    let totalPrecio = 0;
+    let descuentoTotal = 0;
+    
+    cotizacionActual.forEach(item => {
+        totalCosto += item.desglose.subtotalConDescuento || (item.precioUnit * item.cantidad);
+        totalPrecio += item.desglose.precioFinal || (item.precioUnit * item.cantidad);
+        descuentoTotal += (item.desglose.monto_descuento || 0);
+    });
+    
+    const ventaDelDia = {
+        id: `VENTA-${Date.now()}`,
+        user_id: usuario.email || usuario.id || 'unknown',
+        usuario: usuario.nombre || 'Sin nombre',
+        email: usuario.email,
+        date_created: fechaISO,
+        fecha: ahora,
+        items: cotizacionActual.map(item => ({
+            nombre: item.nombre,
+            cantidad: item.cantidad,
+            precioUnit: item.precioUnit,
+            margen: item.margen,
+            subtotal: item.desglose.subtotal,
+            descuento: item.desglose.monto_descuento,
+            subtotalConDescuento: item.desglose.subtotalConDescuento,
+            iva: item.desglose.iva,
+            precioFinal: item.desglose.precioFinal
+        })),
+        totalCosto,
+        totalPrecio,
+        descuentoTotal,
+        ivaTotal: totalPrecio - totalCosto - descuentoTotal,
+        estado: 'completada',
+        ...detalles
+    };
+    
+    // Guardar en Supabase tabla ventas_hoy
+    try {
+        const { error } = await _sb
+            .from('ventas_hoy')
+            .insert([{
+                id: ventaDelDia.id,
+                user_id: ventaDelDia.user_id,
+                usuario: ventaDelDia.usuario,
+                email: ventaDelDia.email,
+                date_created: ventaDelDia.date_created,
+                items: JSON.stringify(ventaDelDia.items),
+                total_costo: ventaDelDia.totalCosto,
+                total_precio: ventaDelDia.totalPrecio,
+                descuento_total: ventaDelDia.descuentoTotal,
+                iva_total: ventaDelDia.ivaTotal,
+                estado: ventaDelDia.estado
+            }]);
+        
+        if (error && error.code !== 'PGRST116') { // Ignorar si tabla no existe
+            throw error;
+        }
+    } catch (error) {
+        console.warn('No se pudo guardar venta en BD:', error.message);
+    }
+    
+    // Agregar a array de ventas del día
+    ventasDelDia.push(ventaDelDia);
+    
+    // Mantener solo últimas 10 en memoria
+    if (ventasDelDia.length > 10) {
+        ventasDelDia = ventasDelDia.slice(-10);
+    }
+    
+    // Guardar en localStorage
+    localStorage.setItem('ventas_hoy', JSON.stringify(ventasDelDia));
+    
+    // Registrar auditoría
+    registrarLogAuditoria('VENTA_COMPLETADA', {
+        id: ventaDelDia.id,
+        items: ventaDelDia.items.length,
+        total: ventaDelDia.totalPrecio,
+        user_id: ventaDelDia.user_id
+    });
+    
+    // Actualizar display de ventas
+    actualizarHistorialVentas();
+    
+    return ventaDelDia;
+}
+
+// Cargar últimas 5 ventas del día desde Supabase
+async function cargarUltimasVentasDelDia() {
+    try {
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const fechaInicio = hoy.toISOString();
+        
+        const { data, error } = await _sb
+            .from('ventas_hoy')
+            .select('*')
+            .gte('date_created', fechaInicio)
+            .order('date_created', { ascending: false })
+            .limit(5);
+        
+        if (error && error.code !== 'PGRST116') {
+            throw error;
+        }
+        
+        ventasDelDia = (data || []).map(venta => ({
+            id: venta.id,
+            user_id: venta.user_id,
+            usuario: venta.usuario,
+            email: venta.email,
+            date_created: venta.date_created,
+            fecha: new Date(venta.date_created),
+            items: JSON.parse(venta.items || '[]'),
+            totalCosto: venta.total_costo,
+            totalPrecio: venta.total_precio,
+            descuentoTotal: venta.descuento_total,
+            ivaTotal: venta.iva_total,
+            estado: venta.estado
+        }));
+        
+        actualizarHistorialVentas();
+    } catch (error) {
+        console.warn('No se pudieron cargar ventas:', error.message);
+        // Intentar cargar del localStorage
+        const ventasGuardadas = localStorage.getItem('ventas_hoy');
+        if (ventasGuardadas) {
+            ventasDelDia = JSON.parse(ventasGuardadas);
+            actualizarHistorialVentas();
+        }
+    }
+}
+
+// Actualizar tabla/display de historial de ventas
+function actualizarHistorialVentas() {
+    const contenedorHistorial = document.getElementById('historialVentas');
+    if (!contenedorHistorial) return;
+    
+    if (ventasDelDia.length === 0) {
+        contenedorHistorial.innerHTML = '<p class="texto-gris">Sin ventas el día de hoy</p>';
+        return;
+    }
+    
+    let html = '<div class="tabla-responsiva"><table class="tabla-ventas">';
+    html += '<thead><tr>';
+    html += '<th>Hora</th>';
+    html += '<th>Producto/Servicio</th>';
+    html += '<th>Cantidad</th>';
+    html += '<th>P. Unit.</th>';
+    html += '<th>Total</th>';
+    html += '<th>Usuario</th>';
+    html += '</tr></thead><tbody>';
+    
+    ventasDelDia.forEach(venta => {
+        const fecha = new Date(venta.date_created || venta.fecha);
+        const hora = fecha.toLocaleTimeString('es-MX', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        venta.items.forEach(item => {
+            const precioFormato = new Intl.NumberFormat('es-MX', {
+                style: 'currency',
+                currency: 'MXN'
+            }).format(item.precioUnit);
+            
+            const totalFormato = new Intl.NumberFormat('es-MX', {
+                style: 'currency',
+                currency: 'MXN'
+            }).format(item.precioFinal);
+            
+            html += '<tr>';
+            html += `<td>${hora}</td>`;
+            html += `<td><strong>${item.nombre}</strong></td>`;
+            html += `<td>${item.cantidad}</td>`;
+            html += `<td>${precioFormato}</td>`;
+            html += `<td class="precio-total"><strong>${totalFormato}</strong></td>`;
+            html += `<td><small>${venta.usuario}</small></td>`;
+            html += '</tr>';
+        });
+    });
+    
+    html += '</tbody></table></div>';
+    contenedorHistorial.innerHTML = html;
+}
+
 // Generar PDF de cotización
 function generarPDFCotizacion(cotizacion) {
     const { jsPDF } = window.jspdf;
@@ -890,8 +1145,9 @@ function limpiarCotizacion() {
 // Inicializar el sistema de cotizaciones cuando se carga la aplicación
 function inicializarCotizaciones() {
     console.log('Inicializando sistema de cotizaciones...');
-    cargarMaterialesEnCotizacion();
+    cargarMaterialesYServiciosEnCotizacion(); // Carga materiales Y servicios
     cargarHistorialCotizaciones();
+    cargarUltimasVentasDelDia(); // Cargar historial de ventas
 }
 
 // Cargar historial de cotizaciones desde localStorage
@@ -905,6 +1161,7 @@ function cargarHistorialCotizaciones() {
 // Exportar funciones si es necesario
 window.switchTab = switchTab;
 window.cargarMateriales = cargarMateriales;
+window.cargarServicios = cargarServicios;
 window.guardarNuevoMaterial = guardarNuevoMaterial;
 window.calcularCostoUnitario = calcularCostoUnitario;
 window.exportarExcel = exportarExcel;
@@ -912,11 +1169,15 @@ window.exportarPDF = exportarPDF;
 window.filtrarInventario = filtrarInventario;
 window.eliminarMaterial = eliminarMaterial;
 window.cargarMaterialesEnCotizacion = cargarMaterialesEnCotizacion;
+window.cargarMaterialesYServiciosEnCotizacion = cargarMaterialesYServiciosEnCotizacion;
 window.actualizarPrecioUnitarioCot = actualizarPrecioUnitarioCot;
 window.calcularTotalCot = calcularTotalCot;
 window.agregarMaterialACotizacion = agregarMaterialACotizacion;
 window.removerMaterialDeCotizacion = removerMaterialDeCotizacion;
 window.guardarCotizacion = guardarCotizacion;
+window.guardarVentaDelDia = guardarVentaDelDia;
+window.cargarUltimasVentasDelDia = cargarUltimasVentasDelDia;
+window.actualizarHistorialVentas = actualizarHistorialVentas;
 window.generarPDFCotizacion = generarPDFCotizacion;
 window.descargarPDFCotizacionActual = descargarPDFCotizacionActual;
 window.limpiarCotizacion = limpiarCotizacion;
