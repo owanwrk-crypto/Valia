@@ -6,6 +6,7 @@ const _sb = supabase.createClient(URL_VALIA, KEY_VALIA);
 // --- ESTADO GLOBAL ---
 let materialesData = []; // Para almacenar los datos cargados y facilitar filtrado
 let currentFilter = localStorage.getItem('filtro_categoria') || 'all';
+let currentSearch = ""; // Para el filtro por texto
 
 // --- UTILIDADES ---
 
@@ -90,15 +91,24 @@ async function cargarMateriales() {
     }
 }
 
-// Función para renderizar la tabla con filtrado aplicado
+// Función para renderizar la tabla con filtrado aplicado (Texto + Categoría)
 function renderTablaMateriales() {
     const tableBody = document.getElementById('materialesTableBody');
     const tableFoot = document.getElementById('inventoryTableFoot');
     
-    // Aplicar filtro
-    const filteredData = currentFilter === 'all' 
+    // 1. Filtrar por Categoría
+    let filteredData = currentFilter === 'all' 
         ? materialesData 
         : materialesData.filter(m => m.categoria === currentFilter);
+
+    // 2. Filtrar por Texto (Nombre)
+    if (currentSearch) {
+        const searchLower = currentSearch.toLowerCase();
+        filteredData = filteredData.filter(m => 
+            m.nombre.toLowerCase().includes(searchLower) || 
+            m.categoria.toLowerCase().includes(searchLower)
+        );
+    }
 
     if (filteredData.length > 0) {
         tableBody.innerHTML = '';
@@ -170,10 +180,17 @@ function renderTablaMateriales() {
     }
 }
 
-// Lógica de filtrado
-function filtrarPorCategoria() {
-    currentFilter = document.getElementById('filterCategoria').value;
-    localStorage.setItem('filtro_categoria', currentFilter); // Persistir estado
+// Lógica de filtrado combinada
+function filtrarInventario() {
+    const searchInput = document.getElementById('searchMaterial');
+    const categorySelect = document.getElementById('filterCategoria');
+
+    if (searchInput) currentSearch = searchInput.value.trim();
+    if (categorySelect) {
+        currentFilter = categorySelect.value;
+        localStorage.setItem('filtro_categoria', currentFilter);
+    }
+
     renderTablaMateriales();
 }
 
@@ -307,5 +324,5 @@ window.guardarNuevoMaterial = guardarNuevoMaterial;
 window.calcularCostoUnitario = calcularCostoUnitario;
 window.exportarExcel = exportarExcel;
 window.exportarPDF = exportarPDF;
-window.filtrarPorCategoria = filtrarPorCategoria;
+window.filtrarInventario = filtrarInventario;
 window.eliminarMaterial = eliminarMaterial;
