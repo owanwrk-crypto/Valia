@@ -102,14 +102,29 @@
             width: 100%;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
-            padding: 10px 12px;
-            border-radius: 8px;
-            color: white;
+            padding: 12px 14px; /* Un poco más de padding para mejor legibilidad */
+            border-radius: 10px;
+            color: #ffffff; /* Blanco puro para máximo contraste */
+            font-size: 1rem;
             outline: none;
+            transition: all 0.2s ease;
         }
 
-        .form-field input:focus {
-            border-color: var(--primary);
+        /* Solución para el problema de visibilidad en dropdowns */
+        .form-field select option {
+            background-color: #1e293b; /* Fondo oscuro sólido para las opciones */
+            color: #ffffff;
+            padding: 10px;
+        }
+
+        .form-field input:focus, .form-field select:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 3px rgba(0, 242, 255, 0.2); /* Focus ring claro */
+        }
+
+        .form-field input:hover, .form-field select:hover {
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .btn-save {
