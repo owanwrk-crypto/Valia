@@ -5,219 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Valia - Cotizador Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --accent: #00f2ff;
-            --bg-dark: #020a16;
-            --glass: rgba(10, 25, 47, 0.7);
-            --border: rgba(255, 255, 255, 0.1);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            background: radial-gradient(circle at top right, #0b2a55, #020a16 80%);
-            color: white;
-            min-height: 100vh;
-            padding: 2rem;
-        }
-
-        .container { max-width: 1100px; margin: 0 auto; }
-
-        h1 { font-family: 'Orbitron', sans-serif; color: var(--accent); margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 2px; }
-
-        .layout { display: grid; grid-template-columns: 1fr 350px; gap: 2rem; }
-
-        .card {
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border);
-            padding: 1.5rem;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-
-        .section-title { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; margin-bottom: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-
-        .flex-row { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: end; }
-
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
-
-        label { font-size: 0.8rem; text-transform: uppercase; color: #aaa; }
-
-        select, input {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
-            padding: 0.8rem;
-            color: white;
-            border-radius: 8px;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1rem;
-        }
-
-        button {
-            background: var(--accent);
-            color: #020a16;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--accent); }
-
-        /* Tabla de conceptos */
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th { text-align: left; font-size: 0.7rem; color: var(--accent); padding: 0.5rem; }
-        td { padding: 0.8rem 0.5rem; border-bottom: 1px solid var(--border); }
-
-        .total-panel {
-            position: sticky;
-            top: 2rem;
-            text-align: right;
-        }
-
-        .total-value { font-size: 3rem; font-family: 'Orbitron', sans-serif; color: var(--accent); margin-top: 1rem; }
-        
-        .item-row:hover { background: rgba(255,255,255,0.03); }
-        .btn-del { background: #ff4444; color: white; padding: 0.3rem 0.6rem; font-size: 0.7rem; }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-    <h1>Cotizador Inteligente / Valia</h1>
+    <header class="animate-in">
+        <h1>VALIA // CONTROL DE COSTOS</h1>
+        <p id="fecha-actual"></p>
+    </header>
 
     <div class="layout">
-        <div class="left-panel">
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="section-title">Agregar Material o Insumo</div>
+        <div class="left-panel animate-in">
+            <div class="card glass-card">
+                <div class="section-title"><i class="fas fa-plus-circle"></i> AGREGAR CONCEPTO</div>
                 <div class="flex-row">
-                    <div class="form-group">
-                        <label>Seleccionar Material</label>
-                        <select id="selectMaterial">
-                            <option value="">Cargando base de datos...</option>
+                    <div class="form-group" style="max-width: 150px;">
+                        <label>Categoría</label>
+                        <select id="tipoItem" onchange="actualizarInterfaz()">
+                            <option value="material">📦 Material</option>
+                            <option value="servicio">🛠 Servicio</option>
                         </select>
                     </div>
-                    <div class="form-group" style="max-width: 100px;">
-                        <label>Cantidad</label>
-                        <input type="number" id="cantMat" value="1">
+                    <div class="form-group">
+                        <label id="labelItem">Seleccionar Item</label>
+                        <select id="selectItem"></select>
                     </div>
-                    <button onclick="agregarItem()">Añadir</button>
+                    <div class="form-group" style="max-width: 100px;">
+                        <label id="labelCant">Cantidad</label>
+                        <input type="number" id="cantidadItem" value="1" min="0.1" step="0.1">
+                    </div>
+                    <button class="btn-neon" onclick="agregarItemALista()">Añadir</button>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="section-title">Resumen de Conceptos</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>CONCEPTO</th>
-                            <th>CANT</th>
-                            <th>U. MEDIDA</th>
-                            <th>P. UNIT</th>
-                            <th>SUBTOTAL</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaCotizacion">
-                        </tbody>
-                </table>
+            <div class="card glass-card">
+                <div class="section-title"><i class="fas fa-file-invoice-dollar"></i> RESUMEN</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Concepto</th>
+                                <th>Cant.</th>
+                                <th>P. Unit.</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaCotizacion"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <div class="right-panel">
-            <div class="card total-panel">
-                <div class="section-title">Cálculo de Venta</div>
-                <div class="form-group" style="margin-top: 1rem;">
+        <div class="right-panel animate-in">
+            <div class="card total-card">
+                <div class="section-title" style="justify-content:center;">RESULTADO FINAL</div>
+                <div class="form-group" style="margin: 20px 0;">
                     <label>Margen de Utilidad (%)</label>
-                    <input type="number" id="margen" value="30" onchange="calcularTotal()">
+                    <input type="number" id="margen" value="30" onchange="calcularFinal()">
                 </div>
-                <p style="margin-top: 1.5rem; font-size: 0.8rem; color: #aaa;">TOTAL A COBRAR</p>
+                <div class="total-label">PRECIO DE VENTA</div>
                 <div class="total-value" id="displayTotal">$0.00</div>
-                <button style="width: 100%; margin-top: 1.5rem;" onclick="generarPDF()">Exportar Cotización</button>
+                <button class="btn-export" onclick="generarPDF()">
+                    <i class="fas fa-download"></i> EXPORTAR PDF
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    const SUPABASE_URL = "https://ietudbyosupknisbfhlj.supabase.co"; 
-    const SUPABASE_KEY = "sb_publishable_wzDzxlSwdpKw4ok4J1qPPA_1eabsV4P";
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let dbMateriales = [];
-    let itemsCotizados = [];
-
-    document.addEventListener('DOMContentLoaded', async () => {
-        const { data } = await _supabase.from('materiales').select('*');
-        dbMateriales = data;
-        
-        const select = document.getElementById('selectMaterial');
-        select.innerHTML = dbMateriales.map(m => `
-            <option value="${m.id}">${m.nombre} ($${m.costo_compra}/${m.unidad_medida})</option>
-        `).join('');
-    });
-
-    function agregarItem() {
-        const id = document.getElementById('selectMaterial').value;
-        const cant = parseFloat(document.getElementById('cantMat').value);
-        const mat = dbMateriales.find(m => m.id === id);
-
-        if(!mat) return;
-
-        itemsCotizados.push({
-            id: mat.id,
-            nombre: mat.nombre,
-            cantidad: cant,
-            unidad: mat.unidad_medida,
-            precio: mat.costo_compra,
-            subtotal: mat.costo_compra * cant
-        });
-
-        renderTabla();
-    }
-
-    function renderTabla() {
-        const tbody = document.getElementById('listaCotizacion');
-        tbody.innerHTML = itemsCotizados.map((item, index) => `
-            <tr class="item-row">
-                <td>${item.nombre}</td>
-                <td>${item.cantidad}</td>
-                <td>${item.unidad}</td>
-                <td>$${item.precio}</td>
-                <td>$${item.subtotal.toFixed(2)}</td>
-                <td><button class="btn-del" onclick="eliminarItem(${index})">X</button></td>
-            </tr>
-        `).join('');
-        calcularTotal();
-    }
-
-    function eliminarItem(index) {
-        itemsCotizados.splice(index, 1);
-        renderTabla();
-    }
-
-    function calcularTotal() {
-        const costoBase = itemsCotizados.reduce((acc, item) => acc + item.subtotal, 0);
-        const margen = parseFloat(document.getElementById('margen').value) / 100;
-        
-        // Fórmula de margen sobre venta (más profesional que solo sumar el %)
-        const total = costoBase / (1 - margen);
-        
-        document.getElementById('displayTotal').innerText = `$${total.toFixed(2)}`;
-    }
-
-    function generarPDF() {
-        alert("Generando archivo para el cliente...");
-        // Aquí conectaremos jsPDF como en tu proyecto de la Quiniela
-    }
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
