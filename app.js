@@ -3,6 +3,10 @@ const URL_VALIA = "https://ietudbyosupknisbfhlj.supabase.co";
 const KEY_VALIA = "sb_publishable_wzDzxlSwdpKw4ok4J1qPPA_1eabsV4P";
 const _sb = supabase.createClient(URL_VALIA, KEY_VALIA);
 
+// --- ESTADO GLOBAL ---
+let materialesData = []; // Para almacenar los datos cargados y facilitar filtrado
+let currentFilter = localStorage.getItem('filtro_categoria') || 'all';
+
 // --- UTILIDADES ---
 
 // Formatear moneda: $1,234.56
@@ -63,85 +67,136 @@ async function cargarMateriales() {
     console.log("Cargando materiales y calculando totales...");
     const tableBody = document.getElementById('materialesTableBody');
     const tableFoot = document.getElementById('inventoryTableFoot');
+    const filterSelect = document.getElementById('filterCategoria');
     
+    // Sincronizar select con estado guardado
+    if (filterSelect) filterSelect.value = currentFilter;
+
     try {
         const { data, error } = await _sb
             .from('materiales')
             .select('*')
-            .order('categoria', { ascending: true }) // Agrupamos por categoría
+            .order('categoria', { ascending: true })
             .order('nombre', { ascending: true });
 
         if (error) throw error;
 
-        if (data && data.length > 0) {
-            tableBody.innerHTML = '';
-            tableFoot.innerHTML = '';
-
-            let currentCategory = "";
-            let categorySubtotal = 0;
-            let totalGeneral = 0;
-            let totalSkus = data.length;
-            let uniqueCategories = new Set();
-
-            data.forEach((mat, index) => {
-                const lineTotal = (mat.costo_compra || 0) * (mat.stock_actual || 0);
-                totalGeneral += lineTotal;
-                uniqueCategories.add(mat.categoria);
-
-                // Si la categoría cambia, mostramos el subtotal de la anterior
-                if (currentCategory !== "" && currentCategory !== mat.categoria) {
-                    renderSubtotalRow(tableBody, currentCategory, categorySubtotal);
-                    categorySubtotal = 0;
-                }
-
-                currentCategory = mat.categoria;
-                categorySubtotal += lineTotal;
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${mat.nombre}</strong></td>
-                    <td><span class="badge">${mat.categoria}</span></td>
-                    <td>${formatCurrency(mat.costo_compra)}</td>
-                    <td>${mat.unidad_medida}</td>
-                    <td style="color: ${mat.stock_actual <= mat.stock_minimo ? '#ff4444' : '#00ff88'}">
-                        ${mat.stock_actual}
-                    </td>
-                    <td>${formatCurrency(lineTotal)}</td>
-                `;
-                tableBody.appendChild(row);
-
-                // Si es el último elemento, mostramos el subtotal de la última categoría
-                if (index === data.length - 1) {
-                    renderSubtotalRow(tableBody, currentCategory, categorySubtotal);
-                }
-            });
-
-            // Renderizar el total general en el footer
-            const footRow = document.createElement('tr');
-            footRow.className = "total-row";
-            footRow.innerHTML = `
-                <td colspan="5" style="text-align: right;">TOTAL GENERAL INVENTARIO:</td>
-                <td>${formatCurrency(totalGeneral)}</td>
-            `;
-            tableFoot.appendChild(footRow);
-
-            // Actualizar Dashboard
-            document.getElementById('totalSkus').innerText = totalSkus;
-            document.getElementById('totalCategories').innerText = uniqueCategories.size;
-            document.getElementById('totalInventoryValue').innerText = formatCurrency(totalGeneral);
-            document.getElementById('lastUpdate').innerText = formatDateTime(new Date());
-
-        } else {
-            tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: rgba(255,255,255,0.3);">No hay materiales registrados.</td></tr>`;
-            // Reset dashboard
-            document.getElementById('totalSkus').innerText = "0";
-            document.getElementById('totalCategories').innerText = "0";
-            document.getElementById('totalInventoryValue').innerText = "$0.00";
-            document.getElementById('lastUpdate').innerText = "-";
-        }
+        materialesData = data || []; // Guardamos copia en estado global
+        renderTablaMateriales(); // Llamamos a la función de renderizado
+        
     } catch (err) {
         console.error("Error al cargar materiales:", err.message);
-        tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #ff4444; padding: 20px;">Error al cargar datos.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ff4444; padding: 20px;">Error al cargar datos.</td></tr>`;
+    }
+}
+
+// Función para renderizar la tabla con filtrado aplicado
+function renderTablaMateriales() {
+    const tableBody = document.getElementById('materialesTableBody');
+    const tableFoot = document.getElementById('inventoryTableFoot');
+    
+    // Aplicar filtro
+    const filteredData = currentFilter === 'all' 
+        ? materialesData 
+        : materialesData.filter(m => m.categoria === currentFilter);
+
+    if (filteredData.length > 0) {
+        tableBody.innerHTML = '';
+        tableFoot.innerHTML = '';
+
+        let currentCategory = "";
+        let categorySubtotal = 0;
+        let totalGeneral = 0;
+        let totalSkus = filteredData.length;
+        let uniqueCategories = new Set();
+
+        filteredData.forEach((mat, index) => {
+            const lineTotal = (mat.costo_compra || 0) * (mat.stock_actual || 0);
+            totalGeneral += lineTotal;
+            uniqueCategories.add(mat.categoria);
+
+            if (currentCategory !== "" && currentCategory !== mat.categoria) {
+                renderSubtotalRow(tableBody, currentCategory, categorySubtotal);
+                categorySubtotal = 0;
+            }
+
+            currentCategory = mat.categoria;
+            categorySubtotal += lineTotal;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${mat.nombre}</strong></td>
+                <td><span class="badge">${mat.categoria}</span></td>
+                <td>${formatCurrency(mat.costo_compra)}</td>
+                <td>${mat.unidad_medida}</td>
+                <td style="color: ${mat.stock_actual <= mat.stock_minimo ? '#ff4444' : '#00ff88'}">
+                    ${mat.stock_actual}
+                </td>
+                <td>${formatCurrency(lineTotal)}</td>
+                <td>
+                    <button class="btn-delete" onclick="eliminarMaterial(${mat.id}, '${mat.nombre.replace(/'/g, "\\'")}')" title="Eliminar registro">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+
+            if (index === filteredData.length - 1) {
+                renderSubtotalRow(tableBody, currentCategory, categorySubtotal);
+            }
+        });
+
+        const footRow = document.createElement('tr');
+        footRow.className = "total-row";
+        footRow.innerHTML = `
+            <td colspan="5" style="text-align: right;">TOTAL FILTRADO:</td>
+            <td>${formatCurrency(totalGeneral)}</td>
+            <td></td>
+        `;
+        tableFoot.appendChild(footRow);
+
+        // Actualizar Dashboard con datos filtrados o globales (usamos filtrados para el contexto)
+        document.getElementById('totalSkus').innerText = filteredData.length;
+        document.getElementById('totalCategories').innerText = uniqueCategories.size;
+        document.getElementById('totalInventoryValue').innerText = formatCurrency(totalGeneral);
+        document.getElementById('lastUpdate').innerText = formatDateTime(new Date());
+
+    } else {
+        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: rgba(255,255,255,0.3);">No hay materiales que coincidan con el filtro.</td></tr>`;
+        tableFoot.innerHTML = '';
+        document.getElementById('totalSkus').innerText = "0";
+        document.getElementById('totalCategories').innerText = "0";
+        document.getElementById('totalInventoryValue').innerText = "$0.00";
+    }
+}
+
+// Lógica de filtrado
+function filtrarPorCategoria() {
+    currentFilter = document.getElementById('filterCategoria').value;
+    localStorage.setItem('filtro_categoria', currentFilter); // Persistir estado
+    renderTablaMateriales();
+}
+
+// Lógica de eliminación
+async function eliminarMaterial(id, nombre) {
+    if (!confirm(`¿Está seguro de eliminar este registro?\n\nMaterial: ${nombre}\nEsta acción es permanente.`)) {
+        return;
+    }
+
+    try {
+        const { error } = await _sb
+            .from('materiales')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        alert("✅ Registro eliminado con éxito.");
+        cargarMateriales(); // Recargar datos de Supabase
+
+    } catch (err) {
+        console.error("Error al eliminar:", err.message);
+        alert("❌ Error al eliminar el registro: " + err.message);
     }
 }
 
@@ -252,3 +307,5 @@ window.guardarNuevoMaterial = guardarNuevoMaterial;
 window.calcularCostoUnitario = calcularCostoUnitario;
 window.exportarExcel = exportarExcel;
 window.exportarPDF = exportarPDF;
+window.filtrarPorCategoria = filtrarPorCategoria;
+window.eliminarMaterial = eliminarMaterial;
