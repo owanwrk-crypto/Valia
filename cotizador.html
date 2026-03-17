@@ -59,11 +59,109 @@
 
         .app-screen {
             background: var(--glass);
-            padding: 40px;
+            padding: 30px;
             border-radius: 24px;
             backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-            min-height: 400px;
+            min-height: 500px;
+        }
+
+        /* Estilos Inventario */
+        .inventory-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+        }
+
+        .material-form {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            height: fit-content;
+        }
+
+        .material-form h4 {
+            font-family: 'Space Grotesk';
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .form-field {
+            margin-bottom: 15px;
+        }
+
+        .form-field label {
+            display: block;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 5px;
+        }
+
+        .form-field input, .form-field select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: white;
+            outline: none;
+        }
+
+        .form-field input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-save {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-save:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .inventory-list {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--accent);
+            font-family: 'Space Grotesk';
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .nav-tabs {
@@ -136,15 +234,73 @@
 
         <main id="app-screen" class="app-screen">
             <nav class="nav-tabs">
-                <button class="tab-btn active" onclick="switchTab('tab-materiales')">Materiales</button>
+                <button class="tab-btn active" onclick="switchTab('tab-materiales')">Inventario</button>
                 <button class="tab-btn" onclick="switchTab('tab-cotizaciones')">Cotizaciones</button>
                 <button class="tab-btn" onclick="switchTab('tab-config')">Configuración</button>
             </nav>
 
             <div id="tab-materiales" class="tab-content active">
-                <h3>Gestión de Materiales</h3>
-                <p>Aquí se cargarán los materiales desde Supabase.</p>
-                <!-- El contenido se cargará dinámicamente -->
+                <div class="inventory-layout">
+                    <!-- Formulario de Registro -->
+                    <div class="material-form">
+                        <h4>Registrar Material</h4>
+                        <div class="form-field">
+                            <label>Nombre del Material</label>
+                            <input type="text" id="matNombre" placeholder="Ej: Taza Blanca">
+                        </div>
+                        <div class="form-field">
+                            <label>Categoría</label>
+                            <select id="matCategoria">
+                                <option value="Tazas">Tazas</option>
+                                <option value="Textiles">Textiles</option>
+                                <option value="Viniles">Viniles</option>
+                                <option value="Consumibles">Consumibles</option>
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Costo de Compra ($)</label>
+                            <input type="number" step="0.01" id="matCosto" placeholder="0.00">
+                        </div>
+                        <div class="form-field">
+                            <label>Unidad de Medida</label>
+                            <select id="matUnidad">
+                                <option value="pza">Pieza (pza)</option>
+                                <option value="metro">Metro (m)</option>
+                                <option value="hoja">Hoja</option>
+                                <option value="gramos">Gramos (g)</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Stock Inicial</label>
+                            <input type="number" id="matStock" placeholder="0">
+                        </div>
+                        <button class="btn-save" onclick="guardarNuevoMaterial()">GUARDAR MATERIAL</button>
+                    </div>
+
+                    <!-- Lista de Materiales -->
+                    <div class="inventory-list">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Material</th>
+                                    <th>Categoría</th>
+                                    <th>Costo</th>
+                                    <th>Unidad</th>
+                                    <th>Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody id="materialesTableBody">
+                                <!-- Se llena dinámicamente -->
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: rgba(255,255,255,0.3); padding: 40px;">
+                                        Cargando materiales...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <div id="tab-cotizaciones" class="tab-content">
