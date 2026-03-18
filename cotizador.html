@@ -12,6 +12,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
+    <!-- Librerías para UX mejorada -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    
     <link rel="stylesheet" href="style.css">
     <style>
         :root {
@@ -379,6 +384,52 @@
                     <div class="stat-card">
                         <div class="label">Última Actualización</div>
                         <div id="lastUpdate" class="value" style="font-size: 0.9rem;">-</div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Inteligente -->
+                <div class="intelligence-dashboard">
+                    <div class="dashboard-header">
+                        <h3 style="color: var(--accent); margin-bottom: 15px; font-size: 1.2rem;">📊 Dashboard Inteligente</h3>
+                    </div>
+                    
+                    <div class="intelligence-grid">
+                        <!-- Gráfica de Ventas Semanales -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h4>📈 Ventas de la Semana</h4>
+                                <div class="chart-legend">
+                                    <span class="legend-dot" style="background: var(--accent);"></span>
+                                    <span>Ventas Diarias</span>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="ventasChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Métrica Producto Estrella -->
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <h4>⭐ Producto Estrella</h4>
+                                <div class="metric-icon">🏆</div>
+                            </div>
+                            <div class="metric-content">
+                                <div id="productoEstrella" class="metric-value">--</div>
+                                <div class="metric-subtitle">Más vendido este mes</div>
+                            </div>
+                        </div>
+
+                        <!-- Alertas de Stock Crítico -->
+                        <div class="alerts-card">
+                            <div class="alerts-header">
+                                <h4>🚨 Alertas de Stock</h4>
+                                <div class="alerts-count" id="alertsCount">0</div>
+                            </div>
+                            <div class="alerts-list" id="alertsList">
+                                <div class="no-alerts">✅ Todo en orden</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -857,5 +908,8 @@
             };
         }
     </script>
+
+    <!-- Contenedor para Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
 </body>
 </html>
